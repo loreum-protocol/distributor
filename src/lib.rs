@@ -43,7 +43,6 @@ pub fn encrypt(key: EphemeralSecret, to: &PublicKey, body: &[u8]) -> Message {
     }
 }
 
-
 #[cfg(test)]
 mod test {
     use super::*;
@@ -54,30 +53,6 @@ mod test {
         hasher.update(phrase);
         let hash = hasher.finalize();
         private_key(hash.into())
-    }
-
-    fn dummy_message() -> Message {
-        let mut nonce = [0; 12];
-        nonce.copy_from_slice(&base64::decode("VtdcQo0osZno7E00").unwrap());
-
-        let mut from = [0; 32];
-        from.copy_from_slice(
-            &base64::decode("79ToCqhhtYcrsysTavwL+DzhwfQ8WEftzXrOI0LV+XY=").unwrap(),
-        );
-
-        Message {
-            nonce: Nonce::from(nonce),
-            from: PublicKey::from(from),
-            body: base64::decode("e1qeUfZLTTdNBw0Y8u1C8dRZ6fU=").unwrap(),
-        }
-    }
-
-    #[test]
-    fn test_decrypt() {
-        let message = dummy_message();
-        let private_key = key_from_phrase("hoge");
-        let result = decrypt(private_key, &message);
-        assert_eq!(&String::from_utf8_lossy(&result), "hoge");
     }
 
     #[test]
