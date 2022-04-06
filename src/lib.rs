@@ -15,6 +15,10 @@ pub fn private_key(seed: [u8; 32]) -> EphemeralSecret {
     EphemeralSecret::new(ChaCha20Rng::from_seed(seed))
 }
 
+fn random_key() -> EphemeralSecret {
+    EphemeralSecret::new(rand::thread_rng())
+}
+
 fn random_nonce() -> Nonce {
     let mut bytes = [0; 12];
     let mut rng = rand::thread_rng();
@@ -30,7 +34,8 @@ pub fn decrypt(key: EphemeralSecret, message: &Message) -> Vec<u8> {
         .unwrap()
 }
 
-pub fn encrypt(key: EphemeralSecret, to: &PublicKey, body: &[u8]) -> Message {
+pub fn encrypt(to: &PublicKey, body: &[u8]) -> Message {
+    let key = random_key();
     let from = PublicKey::from(&key);
     let shared_key = key.diffie_hellman(to);
     let cipher = ChaCha20Poly1305::new(Key::from_slice(shared_key.as_bytes()));
@@ -57,11 +62,9 @@ mod test {
 
     #[test]
     fn test_cyclic() {
-        let alice_key = key_from_phrase("hoge");
-        let bob_key = key_from_phrase("fuga");
-
-        let message = encrypt(alice_key, &PublicKey::from(&bob_key), "hello".as_bytes());
-        let decrypted = decrypt(bob_key, &message);
+        let key = key_from_phrase("hoge");
+        let message = encrypt(&PublicKey::from(&key), "hello".as_bytes());
+        let decrypted = decrypt(key, &message);
         assert_eq!(&String::from_utf8_lossy(&decrypted), "hello");
     }
 }
